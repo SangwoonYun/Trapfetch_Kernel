@@ -82,9 +82,9 @@ static long syscall_trace_enter(struct pt_regs *regs, long syscall,
 	syscall_enter_audit(regs, syscall);
 
 	/* TAG:Trapfetch SWYUN */
-	if (flag_mmap) {
-		printk("ret: %ld  syscall: %3ld", ret, syscall);
-	}
+	/*if (flag_mmap && (syscall != __NR_mmap)) {
+		return -1L;
+	}*/
 
 	return ret ? : syscall;
 }
