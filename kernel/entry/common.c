@@ -46,11 +46,22 @@ static long syscall_trace_enter(struct pt_regs *regs, long syscall,
 {
 	long ret = 0;
 
+	/* TAG:Trapfetch SWYUN */
+	bool flag_mmap = 0;
+
 	/* Handle ptrace */
 	if (ti_work & (_TIF_SYSCALL_TRACE | _TIF_SYSCALL_EMU)) {
-		ret = arch_syscall_enter_tracehook(regs);
-		if (ret || (ti_work & _TIF_SYSCALL_EMU))
-			return -1L;
+		
+		/* TAG:Trapfetch SWYUN */
+		struct task_struct *ptraced;
+		ptraced = container_of(&(current->ptraced), struct task_struct, ptraced);
+		flag_mmap = ptrace_event_enabled(ptraced, PTRACE_EVENT_MMAP);
+		if (flag_mmap && (syscall != __NR_mmap)) {}
+		else {
+			ret = arch_syscall_enter_tracehook(regs);
+			if (ret || (ti_work & _TIF_SYSCALL_EMU))
+				return -1L;
+		}
 	}
 
 	/* Do seccomp after ptrace, to catch any tracer changes. */
@@ -63,10 +74,17 @@ static long syscall_trace_enter(struct pt_regs *regs, long syscall,
 	/* Either of the above might have changed the syscall number */
 	syscall = syscall_get_nr(current, regs);
 
-	if (unlikely(ti_work & _TIF_SYSCALL_TRACEPOINT))
+	/* TAG:Trapfetch SWYUN */
+	if (flag_mmap && (syscall != __NR_mmap)){}
+	else if (unlikely(ti_work & _TIF_SYSCALL_TRACEPOINT))
 		trace_sys_enter(regs, syscall);
 
 	syscall_enter_audit(regs, syscall);
+
+	/* TAG:Trapfetch SWYUN */
+	if (flag_mmap) {
+		printk("ret: %ld  syscall: %3ld", ret, syscall);
+	}
 
 	return ret ? : syscall;
 }

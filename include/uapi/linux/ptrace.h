@@ -123,6 +123,9 @@ struct ptrace_syscall_info {
 /* Extended result codes which enabled by means other than options.  */
 #define PTRACE_EVENT_STOP	128
 
+/* TAG:Trapfetch SWYUN */
+#define PTRACE_EVENT_MMAP	8
+
 /* Options set using PTRACE_SETOPTIONS or using PTRACE_SEIZE @data param */
 #define PTRACE_O_TRACESYSGOOD	1
 #define PTRACE_O_TRACEFORK	(1 << PTRACE_EVENT_FORK)
@@ -133,12 +136,16 @@ struct ptrace_syscall_info {
 #define PTRACE_O_TRACEEXIT	(1 << PTRACE_EVENT_EXIT)
 #define PTRACE_O_TRACESECCOMP	(1 << PTRACE_EVENT_SECCOMP)
 
+/* TAG:Trapfetch SWYUN */
+#define PTRACE_O_TRACEMMAP	(1 << PTRACE_EVENT_MMAP)
+
 /* eventless options */
 #define PTRACE_O_EXITKILL		(1 << 20)
 #define PTRACE_O_SUSPEND_SECCOMP	(1 << 21)
 
+/* TAG:Trapfetch SWYUN */
 #define PTRACE_O_MASK		(\
-	0x000000ff | PTRACE_O_EXITKILL | PTRACE_O_SUSPEND_SECCOMP)
+	0x000000ff | PTRACE_O_EXITKILL | PTRACE_O_SUSPEND_SECCOMP | PTRACE_O_TRACEMMAP)
 
 #include <asm/ptrace.h>
 
