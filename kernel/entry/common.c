@@ -239,14 +239,28 @@ static void syscall_exit_work(struct pt_regs *regs, unsigned long ti_work)
 {
 	bool step;
 
-	audit_syscall_exit(regs);
-
-	if (ti_work & _TIF_SYSCALL_TRACEPOINT)
-		trace_sys_exit(regs, syscall_get_return_value(current, regs));
+	/* TAG:Trapfetch SWYUN */
+	struct task_struct *ptraced;
+	bool flag_mmap = 0;
+	long syscall = syscall_get_nr(current, regs);
+	ptraced = container_of(&(current->ptraced), struct task_struct, ptraced);
+	flag_mmap = ptrace_event_enabled(ptraced, PTRACE_EVENT_MMAP);
+	
+	if (flag_mmap && (syscall != __NR_mmap)) {}
+	else audit_syscall_exit(regs);
+	
+	/* TAG:Trapfetch SWYUN */
+	if (ti_work & _TIF_SYSCALL_TRACEPOINT) {
+		if (flag_mmap && (syscall != __NR_mmap)) {}
+		else trace_sys_exit(regs, syscall_get_return_value(current, regs));
+	}
 
 	step = report_single_step(ti_work);
-	if (step || ti_work & _TIF_SYSCALL_TRACE)
-		arch_syscall_exit_tracehook(regs, step);
+	if (step || ti_work & _TIF_SYSCALL_TRACE) {
+		/* TAG:Trapfetch SWYUN */
+		if (flag_mmap && (syscall != __NR_mmap)){}
+		else arch_syscall_exit_tracehook(regs, step);
+	}
 }
 
 /*
